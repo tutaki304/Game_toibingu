@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Vui Nhỏ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #ffafbd, #ffc3a0);
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            background: #fff;
+            border: 2px solid #333;
+        }
+        .info {
+            position: absolute;
+            top: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            font-size: 20px;
+            color: #333;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #0095DD;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0077aa;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <div>Điểm: <span id="score">0</span></div>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="button-container">
+        <button id="restartButton">Chơi lại</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+        const restartButton = document.getElementById("restartButton");
+
+        let x, y, dx, dy;
+        const ballRadius = 10;
+        const paddleHeight = 10;
+        const paddleWidth = 75;
+        let paddleX;
+        let rightPressed = false;
+        let leftPressed = false;
+        let score;
+        let isGameRunning = true;
+        let speedIncrement = 0.05; // Tăng tốc độ sau mỗi điểm
+
+        function initGame() {
+            x = canvas.width / 2;
+            y = canvas.height - 30;
+            dx = Math.random() * 4 - 2; // Tốc độ ngẫu nhiên theo trục X
+            dy = -2; // Tốc độ theo trục Y
+            paddleX = (canvas.width - paddleWidth) / 2;
+            score = 0;
+            scoreElement.textContent = score;
+            isGameRunning = true;
+        }
+
+        document.addEventListener("keydown", keyDownHandler);
+        document.addEventListener("keyup", keyUpHandler);
+
+        function keyDownHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = true;
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key === "Left" || e.key === "ArrowLeft") {
+                leftPressed = false;
+            }
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function updateScore() {
+            score++;
+            scoreElement.textContent = score;
+            dx += dx > 0 ? speedIncrement : -speedIncrement; // Tăng tốc độ theo X
+            dy += dy > 0 ? speedIncrement : -speedIncrement; // Tăng tốc độ theo Y
+        }
+
+        function draw() {
+            if (!isGameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawPaddle();
+
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                    dx = Math.random() * 4 - 2; // Thay đổi tốc độ X ngẫu nhiên sau mỗi lần đập
+                    updateScore();
+                } else {
+                    isGameRunning = false;
+                    alert("Game Over! Điểm của bạn là: " + score);
+                }
+            }
+
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += Math.min(7, canvas.width - paddleWidth - paddleX);
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= Math.min(7, paddleX);
+            }
+
+            x += dx;
+            y += dy;
+        }
+
+        restartButton.addEventListener("click", () => {
+            initGame();
+        });
+
+        setInterval(draw, 10);
+        initGame();
+    </script>
+</body>
+</html>
